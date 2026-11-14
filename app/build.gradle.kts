@@ -430,20 +430,14 @@ dependencies {
     implementation("com.revenuecat.purchases:purchases:10.15.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
 
-    // JavaSteam
-    val localBuild = false // Change to 'true' needed when building JavaSteam manually
-    if (localBuild) {
-        implementation(files("../../JavaSteam/build/libs/javasteam-1.8.0.1-26-SNAPSHOT.jar"))
-        implementation(files("../../JavaSteam/javasteam-depotdownloader/build/libs/javasteam-depotdownloader-1.8.0.1-26-SNAPSHOT.jar"))
-        implementation(libs.bundles.javasteam.dev)
-    } else {
-        implementation(libs.javasteam) {
-            isChanging = version?.contains("SNAPSHOT") ?: false
-        }
-        implementation(libs.javasteam.depotdownloader) {
-            isChanging = version?.contains("SNAPSHOT") ?: false
-        }
+    // JavaSteam: the jars are built from source at a pinned commit by tools/build-javasteam.sh, so the
+    // code that handles the Steam sign-in never comes from a mutable snapshot repository.
+    val javaSteamJars = fileTree("libs/javasteam") { include("javasteam-*.jar") }
+    check(javaSteamJars.files.size == 2) {
+        "Expected the javasteam and javasteam-depotdownloader jars in app/libs/javasteam; run tools/build-javasteam.sh first."
     }
+    implementation(javaSteamJars)
+    implementation(libs.bundles.javasteam.runtime)
     implementation(libs.spongycastle)
     implementation(libs.okhttp.dnsoverhttps)
 

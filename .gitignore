@@ -8,6 +8,7 @@ build/
 tools/*aab*
 
 # Build
+app/libs/javasteam/
 app/release/baselineProfiles/
 app/release/output-metadata.json
 
