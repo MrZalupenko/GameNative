@@ -1583,7 +1583,7 @@ object PrefManager {
 
     private val BOOT_SCREEN_ADS_ENABLED = booleanPreferencesKey("boot_screen_ads_enabled")
     var bootScreenAdsEnabled: Boolean
-        get() = getPref(BOOT_SCREEN_ADS_ENABLED, true)
+        get() = getPref(BOOT_SCREEN_ADS_ENABLED, false)
         set(value) {
             setPref(BOOT_SCREEN_ADS_ENABLED, value)
         }
@@ -1598,7 +1598,7 @@ object PrefManager {
     // Show game recommendations in library
     private val SHOW_RECOMMENDATIONS = booleanPreferencesKey("show_recommendations")
     var showRecommendations: Boolean
-        get() = getPref(SHOW_RECOMMENDATIONS, true)
+        get() = getPref(SHOW_RECOMMENDATIONS, false)
         set(value) {
             setPref(SHOW_RECOMMENDATIONS, value)
         }
@@ -1955,15 +1955,10 @@ object PrefManager {
         get() = getPref(WARN_BEFORE_EXIT, false)
         set(value) { setPref(WARN_BEFORE_EXIT, value) }
 
-    private val USAGE_ANALYTICS_ENABLED = booleanPreferencesKey("usage_analytics_enabled")
-    var usageAnalyticsEnabled: Boolean
-        get() = getPref(USAGE_ANALYTICS_ENABLED, true)
-        set(value) { setPref(USAGE_ANALYTICS_ENABLED, value) }
-
     // FEX code caches: share which code FEX translated and download prebuilt translations (FexCodeMaps).
     private val FEX_CODE_CACHE_ENABLED = booleanPreferencesKey("fex_code_cache_enabled")
     var fexCodeCacheEnabled: Boolean
-        get() = getPref(FEX_CODE_CACHE_ENABLED, true)
+        get() = getPref(FEX_CODE_CACHE_ENABLED, false)
         set(value) { setPref(FEX_CODE_CACHE_ENABLED, value) }
 
     private val NEXUS_LAST_PLACEMENT_JSON = stringPreferencesKey("nexus_last_placement_json")
@@ -2057,6 +2052,6 @@ object PrefManager {
 
     private val SHARED_SHADER_CACHE = booleanPreferencesKey("shared_shader_cache")
     var sharedShaderCache: Boolean
-        get() = getPref(SHARED_SHADER_CACHE, true)
+        get() = getPref(SHARED_SHADER_CACHE, false)
         set(value) { setPref(SHARED_SHADER_CACHE, value) }
 }

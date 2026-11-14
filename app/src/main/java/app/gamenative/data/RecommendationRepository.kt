@@ -336,7 +336,11 @@ object RecommendationRepository {
      */
     suspend fun getHero(context: Context): HeroResponse =
         withContext(Dispatchers.IO) {
-            val fetched = if (MOCK_HERO_RESPONSE) parseHero(MOCK_HERO_JSON) else fetchRemote()
+            val fetched = when {
+                MOCK_HERO_RESPONSE -> parseHero(MOCK_HERO_JSON)
+                isFeedWanted() -> fetchRemote()
+                else -> null
+            }
             if (fetched != null) {
                 val featured = fetched.featured?.takeIf { it.flavors.targetsThisBuild() }
                 val featuredList = fetched.featuredList
@@ -443,6 +447,10 @@ object RecommendationRepository {
             Timber.tag("RecommendationRepo").d(it, "Failed to save the last hero slot")
         }
     }
+
+    /** The campaign feed is only requested while a setting that shows its content is switched on. */
+    private fun isFeedWanted(): Boolean =
+        PrefManager.showRecommendations || PrefManager.bootScreenAdsEnabled || PrefManager.bootScreenRecommendationsEnabled
 
     private fun fetchRemote(): HeroResponse? {
         return try {
