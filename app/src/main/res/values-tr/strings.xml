@@ -1571,12 +1571,7 @@
     <string name="library_file_count">Dosya %1$d / %2$d</string>
     <string name="download_no_wifi">Wi-Fi/LAN bağlantısı yok</string>
     <string name="download_paused_wifi">İndirme duraklatıldı – Wi-Fi/LAN bekleniyor</string>
-    <string name="main_update_available_title">Güncelleme var</string>
-    <string name="main_update_available_message">Yeni bir sürüm (%1$s) var!%2$s</string>
     <string name="main_update_button">Güncelle</string>
-    <string name="main_later_button">Sonra</string>
-    <string name="main_update_failed_title">Güncelleme başarısız</string>
-    <string name="main_update_failed_message">Güncelleme indirilemedi veya yüklenemedi. Lütfen daha sonra tekrar deneyin.</string>
     <string name="launch_dependency_failed_title">Başlatma bağımlılığı indirilemedi</string>
     <string name="launch_dependency_failed_message">Gerekli bir bileşen indirilemedi. Lütfen daha sonra tekrar deneyin.</string>
     <string name="main_recent_crash_title">Yakın zamandaki çökme</string>

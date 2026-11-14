@@ -1285,12 +1285,7 @@
     <string name="download_paused_wifi">Download sat på pause – venter på Wi-Fi/LAN</string>
 
     <!-- TODO: Manual review - PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Opdatering tilgængelig</string>
-    <string name="main_update_available_message">En ny version (%1$s) er tilgængelig!%2$s</string>
     <string name="main_update_button">Opdatér</string>
-    <string name="main_later_button">Senere</string>
-    <string name="main_update_failed_title">Opdatering fejlede</string>
-    <string name="main_update_failed_message">Kunne ikke downloade eller installere opdateringen. Prøv venligst igen senere.</string>
     <string name="launch_dependency_failed_title">Download af opstartsafhængighed fejlede</string>
     <string name="launch_dependency_failed_message">Kunne ikke downloade en påkrævet komponent. Prøv venligst igen senere.</string>
 

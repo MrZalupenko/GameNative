@@ -1481,12 +1481,7 @@
     <string name="download_paused_wifi">Pobieranie wstrzymane – oczekiwanie na Wi-Fi/LAN</string>
 
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Dostępna aktualizacja</string>
-    <string name="main_update_available_message">Nowa wersja (%1$s) jest dostępna!%2$s</string>
     <string name="main_update_button">Aktualizuj</string>
-    <string name="main_later_button">Później</string>
-    <string name="main_update_failed_title">Aktualizacja nie powiodła się</string>
-    <string name="main_update_failed_message">Nie udało się pobrać lub zainstalować aktualizacji. Spróbuj ponownie później.</string>
     <string name="launch_dependency_failed_title">Pobieranie zależności uruchomienia nie powiodło się</string>
     <string name="launch_dependency_failed_message">Nie udało się pobrać wymaganego składnika. Spróbuj ponownie później.</string>
 

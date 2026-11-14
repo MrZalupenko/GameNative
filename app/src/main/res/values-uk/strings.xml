@@ -1467,12 +1467,7 @@
     <string name="download_paused_wifi">Завантаження призупинено – очікування Wi-Fi/LAN</string>
 
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Доступне оновлення</string>
-    <string name="main_update_available_message">Нова версія (%1$s) доступна!%2$s</string>
     <string name="main_update_button">Оновити</string>
-    <string name="main_later_button">Пізніше</string>
-    <string name="main_update_failed_title">Помилка оновлення</string>
-    <string name="main_update_failed_message">Помилка завантаження або інсталяції оновлення. Будь ласка, спробуйте знову.</string>
     <string name="launch_dependency_failed_title">Помилка завантаження залежності запуску</string>
     <string name="launch_dependency_failed_message">Помилка завантаження необхідного компонента. Будь ласка, спробуйте знову пізніше.</string>
 

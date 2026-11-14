@@ -1417,12 +1417,7 @@
     <string name="download_no_wifi">Nicht mit Wi-Fi/LAN verbunden</string>
     <string name="download_paused_wifi">Download pausiert – warte auf Wi-Fi/LAN</string>
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Update verfügbar</string>
-    <string name="main_update_available_message">Eine neue Version (%1$s) ist verfügbar!%2$s</string>
     <string name="main_update_button">Update</string>
-    <string name="main_later_button">Später</string>
-    <string name="main_update_failed_title">Update fehlgeschlagen</string>
-    <string name="main_update_failed_message">Update konnte nicht heruntergeladen oder installiert werden. Bitte später erneut versuchen.</string>
     <string name="launch_dependency_failed_title">Download der Startabhängigkeit fehlgeschlagen</string>
     <string name="launch_dependency_failed_message">Eine erforderliche Komponente konnte nicht heruntergeladen werden. Bitte später erneut versuchen.</string>
     <!-- PluviaMain: Crash & Support -->

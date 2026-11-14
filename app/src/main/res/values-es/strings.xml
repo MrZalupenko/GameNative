@@ -1476,12 +1476,7 @@
     <string name="download_paused_wifi">Descarga pausada – esperando a Wi-Fi/LAN</string>
 
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Actualización disponible</string>
-    <string name="main_update_available_message">¡Hay una nueva versión (%1$s) disponible!%2$s</string>
     <string name="main_update_button">Actualizar</string>
-    <string name="main_later_button">Más tarde</string>
-    <string name="main_update_failed_title">Actualización fallida</string>
-    <string name="main_update_failed_message">Error al descargar o instalar la actualización, inténtalo de nuevo más tarde.</string>
     <string name="launch_dependency_failed_title">Error al descargar la dependencia de inicio</string>
     <string name="launch_dependency_failed_message">Error al descargar un componente necesario, inténtalo de nuevo más tarde.</string>
 

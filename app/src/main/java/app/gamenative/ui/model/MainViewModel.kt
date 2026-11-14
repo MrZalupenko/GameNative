@@ -39,7 +39,6 @@ import app.gamenative.utils.DebugReportUtils
 import app.gamenative.utils.DebugRunParamsHolder
 import app.gamenative.utils.IntentLaunchManager
 import app.gamenative.utils.SteamUtils
-import app.gamenative.utils.UpdateInfo
 import app.gamenative.utils.WineProcessSnapshotHelper
 import com.materialkolor.PaletteStyle
 import com.winlator.xserver.Window
@@ -152,13 +151,6 @@ class MainViewModel @Inject constructor(
 
     fun setOffline(value: Boolean) {
         _offline.value = value
-    }
-
-    private val _updateInfo = MutableStateFlow<UpdateInfo?>(null)
-    val updateInfo: StateFlow<UpdateInfo?> = _updateInfo.asStateFlow()
-
-    fun setUpdateInfo(info: UpdateInfo?) {
-        _updateInfo.value = info
     }
 
     private val onSteamConnected: (SteamEvent.Connected) -> Unit = {

@@ -1447,12 +1447,7 @@
     <string name="library_file_count">文件 %1$d / %2$d 个</string>
 
     <!-- 主界面：更新与应用信息 -->
-    <string name="main_update_available_title">有可用更新</string>
-    <string name="main_update_available_message">新版本（%1$s）已推出！%2$s</string>
     <string name="main_update_button">更新</string>
-    <string name="main_later_button">稍后更新</string>
-    <string name="main_update_failed_title">更新失败</string>
-    <string name="main_update_failed_message">更新下载或安装失败，请稍后再试</string>
     <string name="launch_dependency_failed_title">下载启动依赖失败</string>
     <string name="launch_dependency_failed_message">无法下载所需组件，请稍后再试。</string>
 

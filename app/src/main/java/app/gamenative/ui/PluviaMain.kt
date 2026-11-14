@@ -148,9 +148,6 @@ import app.gamenative.utils.ManifestInstaller
 import app.gamenative.utils.GameFeedbackUtils
 import app.gamenative.utils.IntentLaunchManager
 import app.gamenative.utils.SteamUtils
-import app.gamenative.utils.UpdateChecker
-import app.gamenative.utils.UpdateInfo
-import app.gamenative.utils.UpdateInstaller
 import app.gamenative.utils.LaunchDependencies
 import app.gamenative.workshop.WorkshopManager
 import app.gamenative.workshop.compatibility.SlayTheSpireModTheSpireCompatibility
@@ -418,8 +415,6 @@ fun PluviaMain(
 
     var gameBackAction by remember { mutableStateOf<() -> Unit?>({}) }
 
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
-
     var openContainerConfigForAppId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Track if connection banner was dismissed by user
@@ -440,21 +435,6 @@ fun PluviaMain(
         // first attempt resolved (connected or failed)
         if (state.connectionState != ConnectionState.CONNECTING) {
             initialConnectDone = true
-        }
-    }
-
-    // Check for updates on app start
-    LaunchedEffect(Unit) {
-        if (BuildConfig.MODERN_ANDROID || BuildConfig.XR_BUILD) return@LaunchedEffect
-        val checkedUpdateInfo = UpdateChecker.checkForUpdate(context)
-        if (checkedUpdateInfo != null) {
-            val appVersionCode = BuildConfig.VERSION_CODE
-            val serverVersionCode = checkedUpdateInfo.versionCode
-            Timber.i("Update check: app versionCode=$appVersionCode, server versionCode=$serverVersionCode")
-            if (appVersionCode < serverVersionCode) {
-                updateInfo = checkedUpdateInfo
-                viewModel.setUpdateInfo(checkedUpdateInfo)
-            }
         }
     }
 
@@ -1312,46 +1292,6 @@ fun PluviaMain(
             }
         }
 
-        DialogType.APP_UPDATE -> {
-            onConfirmClick = {
-                setMessageDialogState(MessageDialogState(false))
-                val updateInfo = viewModel.updateInfo.value
-                if (updateInfo != null) {
-                    scope.launch {
-                        viewModel.setLoadingDialogVisible(true)
-                        viewModel.setLoadingDialogMessage("Downloading update...")
-                        viewModel.setLoadingDialogProgress(0f)
-
-                        val success = UpdateInstaller.downloadAndInstall(
-                            context = context,
-                            downloadUrl = updateInfo.downloadUrl,
-                            versionName = updateInfo.versionName,
-                            onProgress = { progress ->
-                                viewModel.setLoadingDialogProgress(progress)
-                            },
-                        )
-
-                        viewModel.setLoadingDialogVisible(false)
-                        if (!success) {
-                            msgDialogState = MessageDialogState(
-                                visible = true,
-                                type = DialogType.SYNC_FAIL,
-                                title = context.getString(R.string.main_update_failed_title),
-                                message = context.getString(R.string.main_update_failed_message),
-                                dismissBtnText = context.getString(R.string.ok),
-                            )
-                        }
-                    }
-                }
-            }
-            onDismissClick = {
-                setMessageDialogState(MessageDialogState(false))
-            }
-            onDismissRequest = {
-                setMessageDialogState(MessageDialogState(false))
-            }
-        }
-
         DialogType.AI_DEBUG_OFFER -> {
             onConfirmClick = {
                 setMessageDialogState(MessageDialogState(false))
@@ -1965,28 +1905,13 @@ fun PluviaMain(
                         .getStateFlow(HOME_OFFLINE_STATE_KEY, offlineArg)
                         .collectAsStateWithLifecycle()
 
-                    // Show update/crash/support dialogs when Home is first displayed
+                    // Show crash/support dialogs when Home is first displayed
                     // Skip when offline with Steam credentials (avoid flash when Steam reconnects)
                     LaunchedEffect(isOffline) {
                         val shouldShowDialogs = !isOffline || !SteamUtils.hasStoredCredentials()
 
                         if (shouldShowDialogs && !state.annoyingDialogShown && PluviaApp.xEnvironment == null && !SteamService.keepAlive && !MainActivity.wasLaunchedViaExternalIntent) {
-                            val currentUpdateInfo = updateInfo
-                            if (currentUpdateInfo != null) {
-                                viewModel.setAnnoyingDialogShown(true)
-                                msgDialogState = MessageDialogState(
-                                    visible = true,
-                                    type = DialogType.APP_UPDATE,
-                                    title = context.getString(R.string.main_update_available_title),
-                                    message = context.getString(
-                                        R.string.main_update_available_message,
-                                        currentUpdateInfo.versionName,
-                                        currentUpdateInfo.releaseNotes?.let { "\n\n$it" } ?: "",
-                                    ),
-                                    confirmBtnText = context.getString(R.string.main_update_button),
-                                    dismissBtnText = context.getString(R.string.main_later_button),
-                                )
-                            } else if (state.hasCrashedLastStart) {
+                            if (state.hasCrashedLastStart) {
                                 viewModel.setAnnoyingDialogShown(true)
                                 msgDialogState = MessageDialogState(
                                     visible = true,

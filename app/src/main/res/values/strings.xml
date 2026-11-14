@@ -1709,12 +1709,7 @@
     <string name="download_paused_wifi">Download paused – waiting for Wi-Fi/LAN</string>
 
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">Update Available</string>
-    <string name="main_update_available_message">A new version (%1$s) is available!%2$s</string>
     <string name="main_update_button">Update</string>
-    <string name="main_later_button">Later</string>
-    <string name="main_update_failed_title">Update Failed</string>
-    <string name="main_update_failed_message">Failed to download or install the update. Please try again later.</string>
     <string name="launch_dependency_failed_title">Downloading launch dependency failed</string>
     <string name="launch_dependency_failed_message">Failed to download a required component. Please try again later.</string>
 

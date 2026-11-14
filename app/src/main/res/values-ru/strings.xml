@@ -861,7 +861,6 @@ Ubuntu RootFs - releases.ubuntu.com/focal</string>
     <string name="main_installing_glibc">Установка компонентов glibc...</string>
     <string name="main_keep_local">Сохранить локальное</string>
     <string name="main_keep_remote">Сохранить удалённое</string>
-    <string name="main_later_button">Позже</string>
     <string name="main_launch_anyway">Запустить в любом случае</string>
     <string name="main_loading">Загрузка...</string>
     <string name="main_open_discord">Открыть Discord</string>
@@ -899,11 +898,7 @@ https://gamenative.app
     <string name="main_sync_in_progress">Синхронизация в процессе. Пожалуйста, попробуйте снова через момент.</string>
     <string name="main_sync_in_progress_launch_anyway_message">Синхронизация облачного сохранения для этой игры уже запущена. Вы можете подождать и попробовать снова, или запустить в любом случае без синхронизации (может вызвать конфликты сохранений).</string>
     <string name="main_sync_in_progress_retry">Операция синхронизации занимает слишком много времени. Пожалуйста, попробуйте запустить игру снова через момент.</string>
-    <string name="main_update_available_message">Доступна новая версия (%1$s)!%2$s</string>
-    <string name="main_update_available_title">Доступно обновление</string>
     <string name="main_update_button">Обновить</string>
-    <string name="main_update_failed_message">Ошибка загрузки или установки обновления. Пожалуйста, попробуйте позже.</string>
-    <string name="main_update_failed_title">Ошибка обновления</string>
     <string name="main_upload_in_progress_message">Вы играли в %1$s на устройстве %2$s (%3$s) и сохранение того сеанса ещё загружается.
 Попробуйте позже.</string>
     <string name="main_upload_in_progress_title">Загрузка в процессе</string>

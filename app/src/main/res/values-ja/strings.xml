@@ -1697,12 +1697,7 @@
     <string name="download_paused_wifi">ダウンロード一時停止 – Wi-Fi/LANを待機中</string>
 
     <!-- PluviaMain: Update & App Info -->
-    <string name="main_update_available_title">利用可能なアップデート</string>
-    <string name="main_update_available_message">新しいバージョン (%1$s) が利用可能になりました！%2$s</string>
     <string name="main_update_button">アップデート</string>
-    <string name="main_later_button">後で</string>
-    <string name="main_update_failed_title">アップデートに失敗しました</string>
-    <string name="main_update_failed_message">アップデートのダウンロードまたはインストールに失敗しました。後でもう一度試してください。</string>
     <string name="launch_dependency_failed_title">起動依存関係のダウンロードに失敗しました</string>
     <string name="launch_dependency_failed_message">必要なコンポーネントのダウンロードに失敗しました。後でもう一度試してください。</string>
 

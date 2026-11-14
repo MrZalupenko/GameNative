@@ -35,7 +35,6 @@ enum class DialogType(val icon: ImageVector? = null) {
     GAME_FEEDBACK,
     AI_DEBUG_OFFER,
     SAVE_CONTAINER_CONFIG,
-    APP_UPDATE,
     EXECUTABLE_NOT_FOUND,
     WORKSHOP_UPDATE_PROMPT,
     STEAM_UPDATE_PROMPT,
