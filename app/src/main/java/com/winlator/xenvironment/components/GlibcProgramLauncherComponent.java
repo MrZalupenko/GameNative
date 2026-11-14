@@ -14,6 +14,7 @@ import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
+import com.winlator.core.ClosedSourceComponents;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.FileUtils;
 import com.winlator.core.GPUInformation;
@@ -205,20 +206,12 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         // If box86 were used as a separate process, it would need its own LD_PRELOAD via its
         // own env, but in this GLIBC path we only launch box64 directly.
         File glibc64Dir = imageFs.getGlibc64Dir();
-        File sysvshm64 = new File(glibc64Dir, "libandroid-sysvshm.so");
-        File libredirect64 = new File(glibc64Dir, "libredirect.so");
-
-        if (sysvshm64.exists() || libredirect64.exists()) {
-            StringBuilder ldPreload = new StringBuilder();
-            if (libredirect64.exists()) ldPreload.append(libredirect64.getPath());
-            if (sysvshm64.exists()) {
-                if (ldPreload.length() > 0) ldPreload.append(" ");
-                ldPreload.append(sysvshm64.getPath());
-            }
+        String ldPreload = buildLdPreload(glibc64Dir);
+        if (!ldPreload.isEmpty()) {
             Log.d("GlibcProgramLauncherComponent", "Setting LD_PRELOAD=" + ldPreload);
-            envVars.put("LD_PRELOAD", ldPreload.toString());
+            envVars.put("LD_PRELOAD", ldPreload);
         } else {
-            Log.w("GlibcProgramLauncherComponent", "Neither libredirect.so nor libandroid-sysvshm.so found in " + glibc64Dir.getPath());
+            Log.w("GlibcProgramLauncherComponent", "No preload libraries found in " + glibc64Dir.getPath());
         }
         envVars.put("WINEESYNC_WINLATOR", "1");
         if (this.envVars != null) envVars.putAll(this.envVars);
@@ -313,20 +306,12 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         // LD_PRELOAD targets the native ARM64 linker (see execGuestProgram for full explanation).
         // Only 64-bit ARM libs are relevant since box64 is the native process.
         File glibc64Dir = imageFs.getGlibc64Dir();
-        File sysvshm64 = new File(glibc64Dir, "libandroid-sysvshm.so");
-        File libredirect64 = new File(glibc64Dir, "libredirect.so");
-
-        if (sysvshm64.exists() || libredirect64.exists()) {
-            StringBuilder ldPreload = new StringBuilder();
-            if (libredirect64.exists()) ldPreload.append(libredirect64.getPath());
-            if (sysvshm64.exists()) {
-                if (ldPreload.length() > 0) ldPreload.append(" ");
-                ldPreload.append(sysvshm64.getPath());
-            }
+        String ldPreload = buildLdPreload(glibc64Dir);
+        if (!ldPreload.isEmpty()) {
             Log.d("GlibcProgramLauncherComponent", "Shell LD_PRELOAD=" + ldPreload);
-            envVars.put("LD_PRELOAD", ldPreload.toString());
+            envVars.put("LD_PRELOAD", ldPreload);
         } else {
-            Log.w("GlibcProgramLauncherComponent", "Shell: neither libredirect.so nor libandroid-sysvshm.so found in " + glibc64Dir.getPath());
+            Log.w("GlibcProgramLauncherComponent", "Shell: no preload libraries found in " + glibc64Dir.getPath());
         }
         envVars.put("WINEESYNC_WINLATOR", "1");
         if (this.envVars != null) envVars.putAll(this.envVars);
@@ -339,5 +324,18 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
         Log.d("GlibcProgramLauncherComponent", "Shell command is " + finalCommand);
         return ProcessHelper.execWithOutput(finalCommand, envVars.toStringArray(),
                 workingDir != null ? workingDir : imageFs.getRootDir(), includeStderr);
+    }
+
+    /** LD_PRELOAD value for the native ARM64 glibc linker; empty when no preload library is present. */
+    private static String buildLdPreload(File glibc64Dir) {
+        StringBuilder ldPreload = new StringBuilder();
+        File libredirect64 = new File(glibc64Dir, "libredirect.so");
+        if (ClosedSourceComponents.LIBREDIRECT && libredirect64.exists()) ldPreload.append(libredirect64.getPath());
+        File sysvshm64 = new File(glibc64Dir, "libandroid-sysvshm.so");
+        if (sysvshm64.exists()) {
+            if (ldPreload.length() > 0) ldPreload.append(" ");
+            ldPreload.append(sysvshm64.getPath());
+        }
+        return ldPreload.toString();
     }
 }

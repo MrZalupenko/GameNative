@@ -5541,7 +5541,7 @@ private fun exit(
     // The panel listener is session-wide, so both display types drop it here.
     releasePanelRefreshListener()
 
-    GameNativeDrm.nativeStop()
+    if (GameNativeDrm.isAvailable) GameNativeDrm.nativeStop()
     PluviaApp.shutdownEnvironment()
     EaLaunchSupport.stop()
 
@@ -6185,11 +6185,16 @@ internal fun resolveScanoutLayout(container: Container): String {
     } catch (e: ErrnoException) {
         Timber.w(e, "Could not set GNDRM_SCANOUT_LAYOUT")
     }
-    val layout = try {
-        GameNativeDrm.nativeScanoutLayout() ?: "bgra"
-    } catch (e: LinkageError) {
-        Timber.w(e, "Scan-out layout rule unavailable, assuming bgra")
-        "bgra"
+    val layout = if (!GameNativeDrm.isAvailable) {
+        // The device rule lives in the DRM backend; without it the override or the BGRA default applies.
+        override.ifEmpty { "bgra" }
+    } else {
+        try {
+            GameNativeDrm.nativeScanoutLayout() ?: "bgra"
+        } catch (e: LinkageError) {
+            Timber.w(e, "Scan-out layout rule unavailable, assuming bgra")
+            "bgra"
+        }
     }
     Timber.i("X11 scan-out layout %s (%s)", layout, if (override.isNotEmpty()) "container override" else "device rule")
     return layout

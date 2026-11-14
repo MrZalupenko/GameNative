@@ -23,6 +23,7 @@ import com.winlator.container.ContainerManager;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
+import com.winlator.core.ClosedSourceComponents;
 import com.winlator.core.FileUtils;
 // import com.winlator.core.PreloaderDialog;
 import com.winlator.core.TarCompressorUtils;
@@ -93,7 +94,7 @@ public abstract class ImageFsInstaller {
     // The stamp replaces an existing wx shim once: #2289's deadlocks on jemalloc libcs,
     // and the exists check alone would keep it on installed images.
     private static void ensureBionicLib(Context context, File imagefs) {
-        if (BuildConfig.MODERN_ANDROID) {
+        if (ClosedSourceComponents.LIBREDIRECT && BuildConfig.MODERN_ANDROID) {
             File wxDest = new File(imagefs, "usr/lib/libredirect-bionic-wx.so");
             File wxStamp = new File(imagefs, ".wx_shim_restored");
             if (!wxDest.exists() || !wxStamp.exists()) {
@@ -197,6 +198,8 @@ public abstract class ImageFsInstaller {
 
     // Called at every launch by XServerScreen.refreshComponentsFiles (#2322).
     public static boolean installRedirectLibs(Context ctx, File imagefs) {
+        // Nothing to deploy in builds that do not ship the closed-source redirect shim.
+        if (!ClosedSourceComponents.LIBREDIRECT) return true;
         final String ASSET_TAR = "redirect.tzst";          // ➊  add this to assets/
         // ➋  Unpack straight into imagefs, preserving relative paths.
         try (InputStream in  = ctx.getAssets().open(ASSET_TAR)) {

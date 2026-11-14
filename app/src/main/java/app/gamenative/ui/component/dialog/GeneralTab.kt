@@ -46,6 +46,7 @@ import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.winlator.container.Container
 import com.winlator.container.ContainerData
+import com.winlator.core.ClosedSourceComponents
 import com.winlator.core.DefaultVersion
 import com.winlator.core.KeyValueSet
 import com.winlator.core.StringUtils
@@ -436,79 +437,85 @@ fun GeneralTabContent(
             state = config.disableEpicOverlay,
             onCheckedChange = { state.config.value = config.copy(disableEpicOverlay = it) },
         )
-        SettingsSwitch(
-            colors = settingsTileColorsAlt(),
-            title = { Text(text = stringResource(R.string.launch_steam_client_beta)) },
-            subtitle = { Text(text = stringResource(R.string.launch_steam_client_description)) },
-            state = config.launchRealSteam,
-            onCheckedChange = {
-                state.config.value = if (it) {
-                    config.copy(launchRealSteam = true, launchBionicSteam = false)
-                } else {
-                    config.copy(launchRealSteam = false)
+        if (ClosedSourceComponents.STEAM_CLIENT_HOSTS) {
+            SettingsSwitch(
+                colors = settingsTileColorsAlt(),
+                title = { Text(text = stringResource(R.string.launch_steam_client_beta)) },
+                subtitle = { Text(text = stringResource(R.string.launch_steam_client_description)) },
+                state = config.launchRealSteam,
+                onCheckedChange = {
+                    state.config.value = if (it) {
+                        config.copy(launchRealSteam = true, launchBionicSteam = false)
+                    } else {
+                        config.copy(launchRealSteam = false)
+                    }
+                },
+            )
+            if (config.launchRealSteam) {
+                val steamTypeItems = listOf("Headless", "Normal", "Light", "Ultra Light")
+                val currentSteamTypeIndex = when (config.steamType.lowercase()) {
+                    Container.STEAM_TYPE_HEADLESS -> 0
+                    Container.STEAM_TYPE_LIGHT -> 2
+                    Container.STEAM_TYPE_ULTRALIGHT -> 3
+                    else -> 1
                 }
-            },
-        )
-        if (config.launchRealSteam) {
-            val steamTypeItems = listOf("Headless", "Normal", "Light", "Ultra Light")
-            val currentSteamTypeIndex = when (config.steamType.lowercase()) {
-                Container.STEAM_TYPE_HEADLESS -> 0
-                Container.STEAM_TYPE_LIGHT -> 2
-                Container.STEAM_TYPE_ULTRALIGHT -> 3
-                else -> 1
+                SettingsListDropdown(
+                    colors = settingsTileColors(),
+                    title = { Text(text = stringResource(R.string.steam_type)) },
+                    value = currentSteamTypeIndex,
+                    items = steamTypeItems,
+                    onItemSelected = {
+                        val type = when (it) {
+                            0 -> Container.STEAM_TYPE_HEADLESS
+                            2 -> Container.STEAM_TYPE_LIGHT
+                            3 -> Container.STEAM_TYPE_ULTRALIGHT
+                            else -> Container.STEAM_TYPE_NORMAL
+                        }
+                        state.config.value = config.copy(steamType = type)
+                    },
+                )
             }
-            SettingsListDropdown(
-                colors = settingsTileColors(),
-                title = { Text(text = stringResource(R.string.steam_type)) },
-                value = currentSteamTypeIndex,
-                items = steamTypeItems,
-                onItemSelected = {
-                    val type = when (it) {
-                        0 -> Container.STEAM_TYPE_HEADLESS
-                        2 -> Container.STEAM_TYPE_LIGHT
-                        3 -> Container.STEAM_TYPE_ULTRALIGHT
-                        else -> Container.STEAM_TYPE_NORMAL
-                    }
-                    state.config.value = config.copy(steamType = type)
-                },
-            )
+            if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
+                SettingsSwitch(
+                    colors = settingsTileColorsAlt(),
+                    title = { Text(text = stringResource(R.string.launch_bionic_steam)) },
+                    subtitle = { Text(text = stringResource(R.string.launch_bionic_steam_description)) },
+                    state = config.launchBionicSteam,
+                    onCheckedChange = {
+                        state.config.value = if (it) {
+                            config.copy(launchBionicSteam = true, launchRealSteam = false)
+                        } else {
+                            config.copy(launchBionicSteam = false)
+                        }
+                    },
+                )
+            }
         }
-        if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
+        if (ClosedSourceComponents.LIBREDIRECT) {
+            if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
+                SettingsSwitch(
+                    colors = settingsTileColorsAlt(),
+                    title = { Text(text = stringResource(R.string.disable_libredirect_title)) },
+                    subtitle = { Text(text = stringResource(R.string.disable_libredirect_subtitle)) },
+                    state = config.disableLibredirect,
+                    onCheckedChange = {
+                        state.config.value = if (it) {
+                            config.copy(disableLibredirect = true, fasterExternalLoading = false)
+                        } else {
+                            config.copy(disableLibredirect = false)
+                        }
+                    },
+                )
+            }
             SettingsSwitch(
                 colors = settingsTileColorsAlt(),
-                title = { Text(text = stringResource(R.string.launch_bionic_steam)) },
-                subtitle = { Text(text = stringResource(R.string.launch_bionic_steam_description)) },
-                state = config.launchBionicSteam,
-                onCheckedChange = {
-                    state.config.value = if (it) {
-                        config.copy(launchBionicSteam = true, launchRealSteam = false)
-                    } else {
-                        config.copy(launchBionicSteam = false)
-                    }
-                },
-            )
-            SettingsSwitch(
-                colors = settingsTileColorsAlt(),
-                title = { Text(text = stringResource(R.string.disable_libredirect_title)) },
-                subtitle = { Text(text = stringResource(R.string.disable_libredirect_subtitle)) },
-                state = config.disableLibredirect,
-                onCheckedChange = {
-                    state.config.value = if (it) {
-                        config.copy(disableLibredirect = true, fasterExternalLoading = false)
-                    } else {
-                        config.copy(disableLibredirect = false)
-                    }
-                },
+                enabled = !config.disableLibredirect,
+                title = { Text(text = stringResource(R.string.faster_external_loading_title)) },
+                subtitle = { Text(text = stringResource(R.string.faster_external_loading_subtitle)) },
+                state = config.fasterExternalLoading,
+                onCheckedChange = { state.config.value = config.copy(fasterExternalLoading = it) },
             )
         }
-        SettingsSwitch(
-            colors = settingsTileColorsAlt(),
-            enabled = !config.disableLibredirect,
-            title = { Text(text = stringResource(R.string.faster_external_loading_title)) },
-            subtitle = { Text(text = stringResource(R.string.faster_external_loading_subtitle)) },
-            state = config.fasterExternalLoading,
-            onCheckedChange = { state.config.value = config.copy(fasterExternalLoading = it) },
-        )
         SettingsListDropdown(
             colors = settingsTileColors(),
             title = { Text(text = stringResource(R.string.suspend_behavior)) },

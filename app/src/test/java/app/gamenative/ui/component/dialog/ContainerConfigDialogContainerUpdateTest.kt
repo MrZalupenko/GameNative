@@ -14,6 +14,7 @@ import app.gamenative.service.SteamService
 import app.gamenative.utils.ContainerUtils
 import com.winlator.container.Container
 import com.winlator.container.ContainerData
+import com.winlator.core.ClosedSourceComponents
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -200,7 +201,7 @@ class ContainerConfigDialogContainerUpdateTest {
 
         // Boolean flags
         assertFalse(container.isShowFPS)
-        assertEquals(mutated.launchRealSteam, container.isLaunchRealSteam)
+        assertEquals(ClosedSourceComponents.STEAM_CLIENT_HOSTS && mutated.launchRealSteam, container.isLaunchRealSteam)
         assertEquals(mutated.allowSteamUpdates, container.isAllowSteamUpdates)
         assertEquals(mutated.forceDlc, container.isForceDlc)
         assertEquals(mutated.useLegacyDRM, container.isUseLegacyDRM)
@@ -346,7 +347,7 @@ class ContainerConfigDialogContainerUpdateTest {
 
         // Boolean flags
         assertFalse(container.isShowFPS)
-        assertEquals(mutated.launchRealSteam, container.isLaunchRealSteam)
+        assertEquals(ClosedSourceComponents.STEAM_CLIENT_HOSTS && mutated.launchRealSteam, container.isLaunchRealSteam)
         assertEquals(mutated.allowSteamUpdates, container.isAllowSteamUpdates)
         assertEquals(mutated.forceDlc, container.isForceDlc)
         assertEquals(mutated.useLegacyDRM, container.isUseLegacyDRM)
@@ -477,7 +478,7 @@ class ContainerConfigDialogContainerUpdateTest {
         ContainerUtils.applyToContainer(context, container, containerData, saveToDisk = false)
 
         assertFalse(container.isShowFPS)
-        assertTrue(container.isLaunchRealSteam)
+        assertEquals(ClosedSourceComponents.STEAM_CLIENT_HOSTS, container.isLaunchRealSteam)
         assertTrue(container.isAllowSteamUpdates)
         assertTrue(container.isForceDlc)
         assertTrue(container.isUseLegacyDRM)

@@ -6,12 +6,18 @@ import android.os.Looper
 import android.view.Surface
 import app.gamenative.PluviaApp
 import app.gamenative.events.AndroidEvent
+import com.winlator.core.ClosedSourceComponents
 import com.winlator.widget.FrameRating
 
 /** JNI binding for `libgamenative_drm.so` (Gamescope display-server mode); failures are logged under `GN_DRM`. */
 object GameNativeDrm {
-    init {
-        System.loadLibrary("gamenative_drm")
+    /**
+     * Whether the native library is loaded. It never is in builds without the closed-source DRM
+     * backend; the `native*` functions must not be called then.
+     */
+    @JvmStatic
+    val isAvailable: Boolean = ClosedSourceComponents.GAMESCOPE_DRM.also { shipped ->
+        if (shipped) System.loadLibrary("gamenative_drm")
     }
 
     /** [nativeRetargetSurface] return when no daemon session is running. */

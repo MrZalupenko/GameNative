@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.winlator.box86_64.Box86_64Preset;
+import com.winlator.core.ClosedSourceComponents;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.FileUtils;
 import com.winlator.core.KeyValueSet;
@@ -308,7 +309,10 @@ public class Container {
 
     public String getDisplayRenderer() { return displayRenderer; }
 
-    public String getDisplayServer() { return displayServer; }
+    /** Falls back to X11 when the stored choice is gamescope and its DRM backend is not shipped. */
+    public String getDisplayServer() {
+        return ClosedSourceComponents.GAMESCOPE_DRM ? displayServer : DISPLAY_SERVER_X11;
+    }
 
     public int getXrRefreshRate() { return xrRefreshRate; }
 
@@ -324,7 +328,7 @@ public class Container {
 
     /** Whether the gamescope display path can run on a device at this API level. */
     public static boolean isGamescopeSupported(int sdkInt) {
-        return sdkInt >= GAMESCOPE_MIN_SDK;
+        return ClosedSourceComponents.GAMESCOPE_DRM && sdkInt >= GAMESCOPE_MIN_SDK;
     }
 
     public static String defaultDisplayServer(boolean isAdreno, int sdkInt) {
@@ -332,7 +336,9 @@ public class Container {
     }
 
     public static boolean isX11Display(String containerVariant, String displayServer) {
-        return !BIONIC.equalsIgnoreCase(containerVariant) || !DISPLAY_SERVER_GAMESCOPE.equalsIgnoreCase(displayServer);
+        return !ClosedSourceComponents.GAMESCOPE_DRM
+                || !BIONIC.equalsIgnoreCase(containerVariant)
+                || !DISPLAY_SERVER_GAMESCOPE.equalsIgnoreCase(displayServer);
     }
 
     public boolean getSfCompatMode() { return sfCompatMode; }
@@ -428,7 +434,7 @@ public class Container {
     }
 
     public boolean isLaunchRealSteam() {
-        return launchRealSteam;
+        return ClosedSourceComponents.STEAM_CLIENT_HOSTS && launchRealSteam;
     }
 
     public void setLaunchRealSteam(boolean launchRealSteam) {
@@ -437,11 +443,11 @@ public class Container {
 
     /** Real Steam through the headless steamhost rather than the Valve GUI client. */
     public boolean isLaunchHeadlessSteam() {
-        return launchRealSteam && STEAM_TYPE_HEADLESS.equals(steamType);
+        return isLaunchRealSteam() && STEAM_TYPE_HEADLESS.equals(steamType);
     }
 
     public boolean isLaunchBionicSteam() {
-        return launchBionicSteam;
+        return ClosedSourceComponents.STEAM_CLIENT_HOSTS && launchBionicSteam;
     }
 
     public void setLaunchBionicSteam(boolean launchBionicSteam) {

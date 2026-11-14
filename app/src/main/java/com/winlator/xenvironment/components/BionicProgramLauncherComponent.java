@@ -34,6 +34,7 @@ import com.winlator.container.Shortcut;
 import com.winlator.contents.ContentProfile;
 import com.winlator.contents.ContentsManager;
 import com.winlator.core.Callback;
+import com.winlator.core.ClosedSourceComponents;
 import com.winlator.core.DefaultVersion;
 import com.winlator.core.envvars.EnvVarRedaction;
 import com.winlator.core.envvars.EnvVars;
@@ -100,8 +101,10 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
     // Resolve which libredirect shim to preload. Normally the flavor default
     // (PRELOAD_BIONIC_SO). When the container disables libredirect, modern falls
     // back to the W^X-only minimal shim (still required to run Wine on a strict
-    // W^X kernel) and legacy preloads nothing. Returns null to preload nothing.
+    // W^X kernel) and legacy preloads nothing. Returns null to preload nothing,
+    // which is always the case in builds that do not ship the closed-source shim.
     private String resolveLibredirectPreload(ImageFs imageFs) {
+        if (!ClosedSourceComponents.LIBREDIRECT) return null;
         if ((container != null && container.isDisableLibredirect()) || isColorOs17()) {
             if (BuildConfig.MODERN_ANDROID) {
                 return imageFs.getLibDir() + "/libredirect-bionic-wx-minimal.so";
@@ -460,14 +463,6 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
             envVars.put("FEX_ENABLECODECACHINGWIP", "1");
         } else {
             envVars.remove("FEX_ENABLECODECACHINGWIP");
-        }
-
-        if (BuildConfig.XR_BUILD) {
-            String shimPath = context.getApplicationInfo().nativeLibraryDir + "/libkgslshim.so";
-            if (new File(shimPath).exists()) {
-                String cur = envVars.get("LD_PRELOAD");
-                envVars.put("LD_PRELOAD", cur.isEmpty() ? shimPath : shimPath + ":" + cur);
-            }
         }
 
         if (LsfgVkManager.isSupported(container)) {

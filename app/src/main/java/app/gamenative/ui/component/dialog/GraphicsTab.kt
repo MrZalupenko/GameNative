@@ -28,6 +28,7 @@ import com.alorma.compose.settings.ui.SettingsGroup
 import app.gamenative.ui.component.settings.SettingsSwitch
 import com.winlator.contents.ContentProfile
 import com.winlator.container.Container
+import com.winlator.core.ClosedSourceComponents
 import com.winlator.core.KeyValueSet
 import com.winlator.core.StringUtils
 import com.winlator.core.envvars.EnvVars
@@ -109,23 +110,25 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                     },
                 )
             }
-            // Display Server: decides whether the X11 renderer below is used.
-            val displayServerIds = listOf(Container.DISPLAY_SERVER_X11, Container.DISPLAY_SERVER_GAMESCOPE)
-            val displayServerLabels = listOf(
-                stringResource(R.string.display_server_x11),
-                stringResource(R.string.display_server_gamescope),
-            )
-            SettingsListDropdown(
-                colors = settingsTileColors(),
-                title = { Text(text = stringResource(R.string.display_server)) },
-                value = displayServerIds.indexOf(config.displayServer).coerceAtLeast(0),
-                items = displayServerLabels,
-                onItemSelected = { idx ->
-                    if (idx >= 0 && idx < displayServerIds.size) {
-                        state.config.value = config.copy(displayServer = displayServerIds[idx])
-                    }
-                },
-            )
+            if (ClosedSourceComponents.GAMESCOPE_DRM) {
+                // Display Server: decides whether the X11 renderer below is used.
+                val displayServerIds = listOf(Container.DISPLAY_SERVER_X11, Container.DISPLAY_SERVER_GAMESCOPE)
+                val displayServerLabels = listOf(
+                    stringResource(R.string.display_server_x11),
+                    stringResource(R.string.display_server_gamescope),
+                )
+                SettingsListDropdown(
+                    colors = settingsTileColors(),
+                    title = { Text(text = stringResource(R.string.display_server)) },
+                    value = displayServerIds.indexOf(config.displayServer).coerceAtLeast(0),
+                    items = displayServerLabels,
+                    onItemSelected = { idx ->
+                        if (idx >= 0 && idx < displayServerIds.size) {
+                            state.config.value = config.copy(displayServer = displayServerIds[idx])
+                        }
+                    },
+                )
+            }
             // Upscaling resolution: the session's scan-out size (-W/-H and the daemon's emulated mode); Disabled follows the container screen size.
             if (!isX11Display) {
                 val outputResolutionLabels = stringArrayResource(R.array.screen_size_entries).drop(1).reversed()
