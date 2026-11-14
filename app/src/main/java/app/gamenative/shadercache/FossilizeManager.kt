@@ -9,7 +9,6 @@ import app.gamenative.api.ApiResult
 import app.gamenative.api.ShaderCacheApi
 import app.gamenative.api.SupportApi
 import app.gamenative.events.AndroidEvent
-import com.posthog.PostHog
 import com.winlator.container.Container
 import com.winlator.core.FileUtils
 import com.winlator.core.GPUInformation
@@ -352,22 +351,6 @@ object FossilizeManager {
         if (!succeeded) Timber.tag(TAG).w("Replay of %s failed:\n%s", key, outcome.tail.joinToString("\n"))
         container.putExtra(EXTRA_REPLAYED, if (succeeded) stamp else "$stamp|failed")
         container.saveData()
-        if (PrefManager.usageAnalyticsEnabled) {
-            runCatching {
-                PostHog.capture(
-                    event = "shader_cache_replayed",
-                    properties = keyProperties(key) + mapOf(
-                        "pool_version" to version,
-                        "entries" to entries,
-                        "seconds" to seconds,
-                        "exit_code" to outcome.exitCode,
-                        "timed_out" to outcome.timedOut,
-                        "completed" to outcome.completed,
-                        "total" to outcome.total,
-                    ),
-                )
-            }
-        }
     }
 
     private fun runReplay(
@@ -517,14 +500,6 @@ object FossilizeManager {
         enforceRetentionCap(root)
         for ((key, totals) in uploaded) {
             Timber.tag(TAG).i("Uploaded %d shader databases (%d bytes) for %s", totals.first, totals.second, key)
-            if (PrefManager.usageAnalyticsEnabled) {
-                runCatching {
-                    PostHog.capture(
-                        event = "shader_cache_uploaded",
-                        properties = keyProperties(key) + mapOf("files" to totals.first, "bytes" to totals.second),
-                    )
-                }
-            }
         }
     }
 
@@ -534,9 +509,6 @@ object FossilizeManager {
         val json = JSONObject(File(session, SESSION_KEY_FILENAME).readText())
         ShaderCacheKey(json.getString("game"), json.getString("dxvk"), json.getString("vkd3d"))
     }.getOrNull()
-
-    private fun keyProperties(key: ShaderCacheKey): Map<String, Any> =
-        mapOf("game" to key.game, "dxvk" to key.dxvk, "vkd3d" to key.vkd3d)
 
     private fun sha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")

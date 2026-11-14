@@ -29,8 +29,6 @@ import app.gamenative.service.amazon.AmazonService
 import app.gamenative.service.epic.EpicCloudSavesManager
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
-import app.gamenative.utils.BootAdView
-import app.gamenative.utils.ConversionTracker
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.ui.data.MainState
 import app.gamenative.ui.enums.ConnectionState
@@ -97,7 +95,6 @@ class MainViewModel @Inject constructor(
     private var bootAdShownAtMs = 0L
     private var bootAdHiddenAtMs = 0L
     private var bootAdDismissedAtMs = 0L
-    private var bootAdDwellReported = false
     private var bootAwaitingGameWindow = false
     private var gameWindowSeen = false
     private var pendingWarmPitch: Pair<String, Boolean>? = null
@@ -435,8 +432,6 @@ class MainViewModel @Inject constructor(
             } else {
                 BootAdRepository.pickBootCard()?.also {
                     bootAdShownAtMs = System.currentTimeMillis()
-                    bootAdDwellReported = false
-                    BootAdView.begin(it)
                     if (it.sponsored) BootAdRepository.recordShown(it.campaignId) else BootAdRepository.noteShown(it.campaignId)
                 }
             }
@@ -453,17 +448,6 @@ class MainViewModel @Inject constructor(
         } else if (!value && wasShowing) {
             Timber.tag("BootAdTrace").i("hide: ad=%s", _state.value.bootAd?.campaignId)
             bootAdHiddenAtMs = System.currentTimeMillis()
-            _state.value.bootAd?.let { ad ->
-                if (!bootAdDwellReported) {
-                    bootAdDwellReported = true
-                    val dwellSeconds = (System.currentTimeMillis() - bootAdShownAtMs) / 1000L
-                    if (ad.sponsored) {
-                        ConversionTracker.bootAdShown(campaignId = ad.campaignId, dwellSeconds = dwellSeconds)
-                    } else {
-                        ConversionTracker.bootRecShown(campaignId = ad.campaignId, dwellSeconds = dwellSeconds)
-                    }
-                }
-            }
             // bootAd stays in state so the exit fade keeps rendering it; the next show replaces it.
             PluviaApp.isBootingSplashShowing = false
             _state.update { it.copy(showBootingSplash = false, alreadyClearedBootingSplash = true) }
@@ -1111,35 +1095,8 @@ class MainViewModel @Inject constructor(
         val now = System.currentTimeMillis()
         val dwellMs = now - bootAdShownAtMs
         Timber.tag("BootAdTrace").i("dismiss: ad=%s optOut=%s dwellMs=%d", ad.campaignId, optOut, dwellMs)
-        ConversionTracker.track(
-            "boot_ad_dismissed",
-            mapOf(
-                "campaign_id" to ad.campaignId,
-                "sponsored" to ad.sponsored,
-                "template" to ad.template,
-                "opt_out" to optOut,
-                "dwell_ms" to dwellMs,
-            ),
-        )
         if (optOut) {
             if (ad.sponsored) PrefManager.bootScreenAdsEnabled = false else PrefManager.bootScreenRecommendationsEnabled = false
-            ConversionTracker.track(
-                "boot_ad_opted_out",
-                mapOf(
-                    "campaign_id" to ad.campaignId,
-                    "sponsored" to ad.sponsored,
-                    "\$set" to mapOf((if (ad.sponsored) "boot_ads_enabled" else "boot_recs_enabled") to false),
-                ),
-            )
-        }
-        if (!bootAdDwellReported) {
-            bootAdDwellReported = true
-            val dwellSeconds = dwellMs / 1000L
-            if (ad.sponsored) {
-                ConversionTracker.bootAdShown(campaignId = ad.campaignId, dwellSeconds = dwellSeconds)
-            } else {
-                ConversionTracker.bootRecShown(campaignId = ad.campaignId, dwellSeconds = dwellSeconds)
-            }
         }
         bootAdDismissedAtMs = now
         _state.update { it.copy(bootAd = null) }

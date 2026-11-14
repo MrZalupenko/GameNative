@@ -53,7 +53,6 @@ import app.gamenative.ui.component.focusRing
 import app.gamenative.ui.screen.login.QrCodeImage
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.ThemedDialogSurface
-import app.gamenative.ui.trackAiDebug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -134,7 +133,6 @@ fun DiscordLinkDialog(
                             PrefManager.discordLinkedName = poll.data.name.orEmpty()
                             PrefManager.discordMergePending = true
                         }
-                        trackAiDebug("ai_debug_discord_linked", mapOf("via" to "qr"))
                         state = DiscordLinkState.Connected(poll.data.name)
                         return@LaunchedEffect
                     }

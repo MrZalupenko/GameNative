@@ -58,9 +58,7 @@ import app.gamenative.ui.component.focusRing
 import app.gamenative.ui.screen.library.components.VideoHero
 import app.gamenative.PrefManager
 import app.gamenative.ui.theme.PluviaTheme
-import app.gamenative.utils.ConversionTracker
 import app.gamenative.data.gog.GogRecommendationsRepository
-import com.posthog.PostHog
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 
@@ -381,25 +379,8 @@ internal fun RecommendedGameScreen(
                 Button(
                     interactionSource = buyInteractionSource,
                     onClick = {
-                        val clickId = ConversionTracker.newClickId()
-                        val sid = GogRecommendationsRepository.affiliateSubId(recSource, recRank, clickId)
+                        val sid = GogRecommendationsRepository.affiliateSubId(recSource, recRank)
                         val url = GogRecommendationsRepository.withAffiliateSubId(game.affiliateUrl, sid)
-                        if (PrefManager.usageAnalyticsEnabled) {
-                            PostHog.capture(
-                                event = "recommendation_link_clicked",
-                                properties = mapOf(
-                                    "game_name" to game.name,
-                                    "game_id" to game.id,
-                                    "affiliate_url" to game.affiliateUrl,
-                                    "rank" to recRank,
-                                    "source" to recSource,
-                                    "because_played" to (game.becausePlayed ?: ""),
-                                    "seed_count" to game.becauseGames.size,
-                                    "sid" to sid,
-                                    "click_id" to (clickId ?: ""),
-                                ),
-                            )
-                        }
                         val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
                         context.startActivity(browserIntent)
                     },

@@ -40,8 +40,6 @@ import app.gamenative.ui.component.themedButtonContent
 import app.gamenative.ui.component.themedButtonFill
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SnackbarManager
-import app.gamenative.utils.ConversionTracker
-import com.posthog.PostHog
 import kotlinx.coroutines.launch
 
 @Composable
@@ -81,33 +79,9 @@ internal fun FeaturedCtaButton(
     val onClick: () -> Unit = onClick@{
         if (inert) return@onClick
 
-        val clickId = ConversionTracker.newClickId()
-        val sid = if (affiliate) GogRecommendationsRepository.affiliateSubId(recSource, recRank, clickId) else ""
+        val sid = if (affiliate) GogRecommendationsRepository.affiliateSubId(recSource, recRank) else ""
         val url = if (affiliate) GogRecommendationsRepository.withAffiliateSubId(action.url, sid) else action.url
-        if (PrefManager.usageAnalyticsEnabled) {
-            PostHog.capture(
-                event = "featured_action_clicked",
-                properties = mapOf(
-                    "campaign_id" to campaignId,
-                    "action_label" to action.label,
-                    "url" to action.url,
-                    "source" to recSource,
-                    "sid" to sid,
-                    "click_id" to (clickId ?: ""),
-                ) + extras,
-            )
-        }
-        ConversionTracker.rememberCampaignClick(action.appId, campaignId, recSource)
         if (cta == null) {
-            // Plain-link CTAs (VISIT etc.) are billable clicks too: count them like in-app
-            // conversions so per-CTA campaigns bill even with usage analytics disabled.
-            ConversionTracker.featuredConversion(
-                campaignId = campaignId,
-                actionType = action.type,
-                appId = action.appId,
-                source = recSource,
-                extras = extras,
-            )
             openUrl(url)
         } else {
             busy = true
@@ -116,13 +90,6 @@ internal fun FeaturedCtaButton(
                 busy = false
                 if (ok) {
                     done = true
-                    ConversionTracker.featuredConversion(
-                        campaignId = campaignId,
-                        actionType = action.type,
-                        appId = action.appId,
-                        source = recSource,
-                        extras = extras,
-                    )
                 } else {
                     SnackbarManager.show(context.getString(R.string.featured_action_failed))
                     openUrl(url)

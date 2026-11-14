@@ -43,8 +43,6 @@ import app.gamenative.data.localizedPrompt
 import app.gamenative.data.localizedWinBody
 import app.gamenative.data.localizedLoseBody
 import app.gamenative.data.isPlayable
-import app.gamenative.utils.BootAdView
-import com.posthog.PostHog
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -283,7 +281,6 @@ fun BootingSplash(
                             // Only the primary art disables the card; a bad screenshot just skips
                             if (url == activeAd.imageUrl) {
                                 adImageFailed = true
-                                BootAdView.imageFailed(activeAd.campaignId)
                             } else if (adImages.size > 1) {
                                 adImageIndex = (adImageIndex + 1) % adImages.size
                             }
@@ -531,19 +528,6 @@ private fun BootAdVideo(
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {
                 showFallback = false
-                BootAdView.videoFirstFrame()
-            }
-
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                BootAdView.videoPlaying(isPlaying)
-            }
-
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int,
-            ) {
-                if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) BootAdView.videoLooped()
             }
         }
         exoPlayer.addListener(listener)
@@ -559,7 +543,6 @@ private fun BootAdVideo(
 
         onDispose {
             timber.log.Timber.tag("BootAdTrace").i("video disposed")
-            BootAdView.videoPlaying(false)
             exoPlayer.removeListener(listener)
             lifecycleOwner.lifecycle.removeObserver(observer)
             exoPlayer.release()
@@ -597,7 +580,6 @@ private fun BootAdVideo(
             onClick = {
                 soundOn = !soundOn
                 exoPlayer.volume = if (soundOn) 1f else 0f
-                BootAdView.videoSound(soundOn)
             },
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -718,10 +700,6 @@ private fun BootAdContent(
                 } else {
                     null
                 }
-            }
-
-            LaunchedEffect(ad.campaignId, backdrop) {
-                BootAdView.cardRendered(ad, backdrop, cta?.type, quizQuestion != null)
             }
 
             if (quizQuestion != null) {
@@ -936,22 +914,6 @@ private fun BootQuizCard(
                 return@LaunchedEffect
             }
             remainingMs = left
-        }
-    }
-
-    LaunchedEffect(resolved) {
-        if (resolved) BootAdView.quizResolved(correct = won, timedOut = timedOut)
-        if (resolved && PrefManager.usageAnalyticsEnabled) {
-            PostHog.capture(
-                event = "boot_quiz_answered",
-                properties = mapOf(
-                    "campaign_id" to ad.campaignId,
-                    "correct" to won,
-                    "timed_out" to timedOut,
-                    "answer_index" to (selected ?: -1),
-                    "time_left_ms" to remainingMs,
-                ),
-            )
         }
     }
 

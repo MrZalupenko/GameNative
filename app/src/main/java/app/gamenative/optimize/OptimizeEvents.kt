@@ -2,7 +2,6 @@ package app.gamenative.optimize
 
 import app.gamenative.BuildConfig
 import app.gamenative.PrefManager
-import com.posthog.PostHog
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +16,7 @@ import timber.log.Timber
 /**
  * The Optimize funnel, sent to our own API in small batches: which cards were shown and answered, which steps went
  * on and how they were judged. Fire and forget: a batch the server did not take is kept in memory for the next one.
- * Feature telemetry keyed by the device-scoped Optimize id; the PostHog mirror of a few events follows the analytics
- * setting.
+ * Feature telemetry keyed by the device-scoped Optimize id.
  */
 object OptimizeEvents {
     const val CARD_SHOWN = "card_shown"
@@ -37,9 +35,6 @@ object OptimizeEvents {
     const val RESTORED = "restored"
     const val EXHAUSTED = "exhausted"
     const val DONE = "done"
-
-    /** Mirrored to PostHog as optimize_<name> when usage analytics is on. */
-    private val MIRRORED = setOf(CARD_SHOWN, CARD_ACCEPTED, JUDGED_HELPED, JUDGED_NO_CHANGE, JUDGED_WORSE)
 
     private const val MAX_QUEUE = 200
     private const val BATCH_DELAY_MS = 3_000L
@@ -97,14 +92,8 @@ object OptimizeEvents {
         gpuWorkScaling?.let { put("gpu_work_scaling", it) }
     }
 
-    private val MIRRORED_EXTRA = listOf(
-        "gpu_work_per_frame_before", "gpu_work_per_frame_after", "gpu_busy_p95", "hot_thread_p95", "fps_ceiling_reason",
-        "tessellation_pipelines", "gpu_work_scaling",
-    )
-
     /** Queues [event] for the next batch; [device] is the device block every batch carries. */
     fun record(event: JSONObject, device: () -> JSONObject) {
-        mirror(event)
         synchronized(lock) {
             queue.addLast(event)
             while (queue.size > MAX_QUEUE) queue.removeFirst()
@@ -131,30 +120,5 @@ object OptimizeEvents {
         if (!OptimizeApi.postEvents(body)) return false
         synchronized(lock) { repeat(minOf(batch.size, queue.size)) { queue.removeFirst() } }
         return true
-    }
-
-    private fun mirror(event: JSONObject) {
-        val name = event.optString("event")
-        if (name !in MIRRORED) return
-        try {
-            if (!PrefManager.usageAnalyticsEnabled) return
-            val game = event.optJSONObject("game")
-            PostHog.capture(
-                event = "optimize_$name",
-                properties = buildMap<String, Any> {
-                    game?.optStringOrNull("store")?.let { put("game_store", it) }
-                    game?.optStringOrNull("name")?.let { put("game_name", it) }
-                    event.optStringOrNull("profile")?.let { put("profile", it) }
-                    event.optStringOrNull("class")?.let { put("verdict_class", it) }
-                    event.optStringOrNull("card_kind")?.let { put("card_kind", it) }
-                    event.optStringOrNull("rung_id")?.let { put("rung_id", it) }
-                    event.optStringOrNull("rules_version")?.let { put("rules_version", it) }
-                    if (event.optBoolean("unverified", false)) put("unverified", true)
-                    MIRRORED_EXTRA.forEach { key -> event.opt(key)?.takeIf { it != JSONObject.NULL }?.let { put(key, it) } }
-                },
-            )
-        } catch (e: Exception) {
-            Timber.tag("Optimize").w(e, "Mirroring $name to PostHog failed")
-        }
     }
 }
