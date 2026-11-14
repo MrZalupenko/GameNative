@@ -56,6 +56,11 @@ jobs:
       - name: Build JavaSteam from pinned source
         run: tools/build-javasteam.sh
 
+      - name: Create local.properties
+        # The secrets Gradle plugin fails without this file. It stays empty: the build uses none
+        # of upstream's optional keys (SteamGridDB, Play Integrity project number).
+        run: touch local.properties
+
       - name: Build release bundle
         run: ./gradlew :app:bundleLegacyRelease
 
