@@ -28,6 +28,31 @@
 
 ---
 
+## About this fork
+
+This is a personal fork of [utkarshdalal/GameNative](https://github.com/utkarshdalal/GameNative), frozen at
+upstream 1.4.0. Its goal is a build that contains and runs only code whose source is available:
+
+- **No closed-source GameNative binaries.** `libredirect*.so`, `libgamenative_drm.so`, `libsteambootstrap.so` and
+  `libkgslshim.so` are removed, and the launcher stand-ins (`steamhost`, `steam-token`, `eahost`, `rgschost`) are
+  never downloaded. The features that need them are switched off in
+  [`ClosedSourceComponents`](app/src/main/java/com/winlator/core/ClosedSourceComponents.java): the gamescope display
+  server, every "Launch Steam Client" mode and the libredirect options. Without libredirect the app is only expected
+  to work on Android 14 and older.
+- **No PostHog analytics.** The SDK and every event are removed.
+- **JavaSteam from source.** The Steam network library, which also implements the sign-in, is compiled from a pinned
+  commit by [`tools/build-javasteam.sh`](tools/build-javasteam.sh) instead of being pulled from a snapshot repository.
+- **Built on GitHub.** The [Personal build](.github/workflows/personal-build.yml) workflow compiles the APK on
+  GitHub's runners and publishes it as a prerelease of this repository.
+
+Still prebuilt and taken as-is from upstream: the remaining native libraries under `app/src/*/jniLibs`, the bundled
+archives under `app/src/*/assets`, and the Wine / Proton, Box64, FEX, DXVK and graphics driver packages the app
+downloads from `downloads.gamenative.app`.
+
+Everything below is the upstream README.
+
+---
+
 GameNative lets you run the PC games in your Steam, Epic and GOG libraries directly on Android — no streaming required. Your saves sync to the cloud, so you can stop on your PC and keep going on your phone.
 
 It's still early. Not every game runs yet, and some need tweaking to play well, but the community is constantly finding and sharing configs that work — and these get applied automatically. You can see if anyone has tried running your game successfully at https://gamenative.app/compatibility.

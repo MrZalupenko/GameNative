@@ -1,0 +1,143 @@
+# Builds the installable APK of this fork entirely on GitHub's runners:
+#   * JavaSteam is compiled from source at a pinned commit (tools/build-javasteam.sh),
+#   * the app is compiled from this repository,
+#   * the APK is published as a prerelease so it can be downloaded straight to a phone.
+#
+# Signing: with the four SIGNING_* repository secrets set, every build is signed with the same
+# key and installs as an update. Without them a throwaway key is generated per run, which means
+# the previous build has to be uninstalled first (its downloaded games are lost).
+name: Personal build
+
+on:
+  push:
+    branches: [personal-build]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: personal-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
+          df -h /
+
+      - name: Add swap
+        run: |
+          sudo fallocate -l 8G /mnt/swapfile.ci
+          sudo chmod 600 /mnt/swapfile.ci
+          sudo mkswap /mnt/swapfile.ci
+          sudo swapon /mnt/swapfile.ci
+          free -m
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build JavaSteam from pinned source
+        run: tools/build-javasteam.sh
+
+      - name: Build release bundle
+        run: ./gradlew :app:bundleLegacyRelease
+
+      - name: Extract universal APK
+        run: |
+          java -Xmx3g -jar tools/bundletool-all-1.17.2.jar build-apks \
+            --bundle=app/build/outputs/bundle/legacyRelease/app-legacy-release.aab \
+            --output=app.apks \
+            --mode=universal
+          unzip -o app.apks universal.apk
+          rm app.apks
+
+      - name: Sign APK
+        id: sign
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          keystore="$RUNNER_TEMP/signing.keystore"
+          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+            echo "key=persistent" >> "$GITHUB_OUTPUT"
+          else
+            SIGNING_KEYSTORE_PASSWORD="$(openssl rand -hex 16)"
+            SIGNING_KEY_PASSWORD="$SIGNING_KEYSTORE_PASSWORD"
+            SIGNING_KEY_ALIAS="throwaway"
+            keytool -genkeypair -keystore "$keystore" -storetype PKCS12 \
+              -storepass "$SIGNING_KEYSTORE_PASSWORD" -keypass "$SIGNING_KEY_PASSWORD" \
+              -alias "$SIGNING_KEY_ALIAS" -keyalg RSA -keysize 3072 -validity 3650 \
+              -dname "CN=GameNative personal build"
+            echo "key=throwaway" >> "$GITHUB_OUTPUT"
+          fi
+
+          build_tools="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          apk="gamenative-personal-${GITHUB_SHA::7}.apk"
+          export SIGNING_KEYSTORE_PASSWORD SIGNING_KEY_PASSWORD
+          "$build_tools/apksigner" sign \
+            --ks "$keystore" \
+            --ks-key-alias "$SIGNING_KEY_ALIAS" \
+            --ks-pass env:SIGNING_KEYSTORE_PASSWORD \
+            --key-pass env:SIGNING_KEY_PASSWORD \
+            --out "$apk" \
+            universal.apk
+          "$build_tools/apksigner" verify --print-certs "$apk" | head -n 3
+          rm -f "$keystore" universal.apk
+
+          echo "apk=$apk" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$apk" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.sign.outputs.apk }}
+          path: ${{ steps.sign.outputs.apk }}
+          if-no-files-found: error
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK: ${{ steps.sign.outputs.apk }}
+          APK_SHA256: ${{ steps.sign.outputs.sha256 }}
+          SIGNING_KEY_KIND: ${{ steps.sign.outputs.key }}
+        run: |
+          set -euo pipefail
+          tag="personal-${GITHUB_RUN_NUMBER}"
+          {
+            echo "Built by GitHub Actions from commit \`${GITHUB_SHA}\`."
+            echo
+            echo "SHA-256 of \`${APK}\`: \`${APK_SHA256}\`"
+            echo
+            if [ "$SIGNING_KEY_KIND" = "throwaway" ]; then
+              echo "Signed with a throwaway key: uninstall the previous build before installing this one."
+            else
+              echo "Signed with the repository's persistent key: installs as an update."
+            fi
+          } > release-notes.md
+          gh release create "$tag" "$APK" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Personal build ${GITHUB_RUN_NUMBER}" \
+            --notes-file release-notes.md \
+            --prerelease
